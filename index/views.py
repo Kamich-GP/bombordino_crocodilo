@@ -1,5 +1,9 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from .models import Category, Product
+from .forms import RegForm
+from django.contrib.auth.models import User
+from django.contrib.auth import login, logout
+from django.views import View
 
 
 # Create your views here.
@@ -41,3 +45,48 @@ def product_page(request, pk):
     }
 
     return render(request, 'product.html', context)
+
+
+# Регистрация
+class Register(View):
+    template_name = 'registration/register.html'
+
+    # Этап 1 - получение формы
+    def get(self, request):
+        context = {'form': RegForm}
+        return render(request, self.template_name, context)
+
+
+    # Этап 2 - отправка формы
+    def post(self, request):
+        form = RegForm(request.POST)
+
+        if form.is_valid():
+            # Достали данные, которые ввел пользователь
+            username = form.cleaned_data.get('username')
+            email = form.cleaned_data.get('email')
+            password = form.cleaned_data.get('password2')
+
+            # Создаем нового пользователя в БД
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.save()
+
+            # Аутентифицируем пользователя
+            login(request, user)
+
+            # Переводим пользователя на главную страницу
+            return redirect('/')
+
+
+# Поиск продукта
+def search_product(request):
+    if request.method == 'POST':
+        get_product = request.POST.get('search_product')
+        product = Product.objects.filter(product_name__iregex=get_product)
+
+        if product:
+            context = {'prompt': get_product,
+                       'products': product}
+            return render(request, 'result.html', context)
+        else:
+            return redirect('/')
