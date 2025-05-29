@@ -32,10 +32,17 @@
           <input type="search" class="form-control" placeholder="Поиск..." aria-label="Search">
         </form>
 
+        {% if user.is_authenticated %}
         <div class="text-end">
-          <button type="button" class="btn btn-light text-dark me-2">Войти</button>
-          <button type="button" class="btn btn-primary">Регистрация</button>
+            <a href="/cart"><button type="button" class="btn btn-light text-dark me-2">Корзина</button></a>
+            <a href="/logout"><button type="button" class="btn btn-primary">Выйти</button></a>
         </div>
+          {% else %}
+          <div class="text-end">
+            <a href="/register"><button type="button" class="btn btn-light text-dark me-2">Регистрация</button></a>
+            <a href="/accounts/login"><button type="button" class="btn btn-primary">Войти</button></a>
+          </div>
+          {% endif %}
       </div>
     </div>
   </header>
@@ -49,8 +56,17 @@
         <h1 class="display-5 fw-bold lh-1 mb-3">{{ product }}</h1>
         <p class="lead">{{ product.product_des }}</p>
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
-          <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Купить</button>
+          {% if user.is_authenticated %}
+          <form action="/to-cart/{{ product.id }}" method="post">
+            {% csrf_token %}
+            <input type="number" min="1" value="1" name="pr_amount" placeholder="Количество">
+            <button type="submit" class="btn btn-primary btn-lg px-4 me-md-2">Добавить в корзину</button>
+            <button type="button" class="btn btn-outline-secondary btn-lg px-4">$ {{ product.product_price }}</button>
+          </form>
+          {% else %}
+          <button type="button" class="btn btn-primary btn-lg px-4 me-md-2">Войдите или зарегистрируйтесь, чтобы купить товар!</button>
           <button type="button" class="btn btn-outline-secondary btn-lg px-4">$ {{ product.product_price }}</button>
+          {% endif %}
         </div>
       </div>
     </div>
